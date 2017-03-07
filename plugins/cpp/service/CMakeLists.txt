@@ -10,9 +10,10 @@ include_directories(
   ${THRIFT_LIBTHRIFT_INCLUDE_DIRS})
 
 add_library(cppservice SHARED
-  src/cppservice.cpp
   src/plugin.cpp
-  src/diagram.cpp)
+  src/cppservice.cpp
+  src/diagram.cpp
+  src/symbolclusterer.cpp)
 
 target_compile_options(cppservice PUBLIC -Wno-unknown-pragmas)
 

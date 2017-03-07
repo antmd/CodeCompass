@@ -13,6 +13,8 @@
 #include <model/buildaction-odb.hxx>
 #include <model/buildsourcetarget.h>
 #include <model/buildsourcetarget-odb.hxx>
+#include <model/cppclusterinfo.h>
+#include <model/cppclusterinfo-odb.hxx>
 #include <model/file.h>
 #include <model/file-odb.hxx>
 
@@ -26,6 +28,7 @@
 #include "manglednamecache.h"
 #include "ppincludecallback.h"
 #include "ppmacrocallback.h"
+#include "symbolclusterer.h"
 
 namespace cc
 {
@@ -371,8 +374,54 @@ bool CppParser::parse()
       success
         = success && parseByJson(input, _ctx.options["jobs"].as<int>());
 
+
+  std::unique_ptr<SymbolClusterer> clusterer;
+  SymbolClusterer::cluster_collection initialClusters;
+  if (!_ctx.options["cpp-no-linkage-accuracy"].as<bool>())
+  {
+    clusterer = std::make_unique<SymbolClusterer>(
+      _ctx, _ctx.options["jobs"].as<int>());
+    LOG(info) << "Enhancing linkage accuracy based on build information...";
+    initialClusters = clusterer->retrieveInitialClusters();
+    clusterer->performClusterisation(initialClusters);
+  }
+
+  // performClusterisation just schedules calculations and execution is
+  // done in at least one parallel thread (unless --jobs 1 was specified!).
+  // So some other work can continue here.
   VisitorActionFactory::cleanUp();
   _parsedCommandHashes.clear();
+
+  if (!_ctx.options["cpp-no-linkage-accuracy"].as<bool>())
+  {
+    LOG(debug) << "Waiting for accurancy enhancement to finish...";
+    clusterer->waitForClusters();
+
+    // Store the clusterisation data in the database
+    {
+      odb::transaction trans(_ctx.db->begin());
+      size_t actionCount = 0;
+
+      for (auto it : initialClusters)
+        for (auto ba : it.second)
+        {
+          model::CppClusterInfo element;
+          element.file = odb::lazy_shared_ptr<model::File>(*_ctx.db, it.first);
+          element.action = odb::lazy_shared_ptr<model::BuildAction>(*_ctx.db,
+                                                                    ba);
+
+          _ctx.db->persist(element);
+          ++actionCount;
+        }
+
+      trans.commit();
+
+      LOG(info) << "Clusterisation finished, " << initialClusters.size()
+                << " files were involved, " << actionCount << " records "
+                   "written.";
+    }
+  }
+
 
   return success;
 }
@@ -417,6 +466,13 @@ extern "C"
   boost::program_options::options_description getOptions()
   {
     boost::program_options::options_description description("C++ Plugin");
+
+    description.add_options()
+      ("cpp-no-linkage-accuracy", po::value<bool>()->default_value(false),
+       "If specified to 1 (\"true\"), disables CodeCompass' ability to "
+       "increase navigation accuracy (e.g. \"jump to definition\") by "
+       "resolving linkage information from the build database.");
+
     return description;
   }
 
