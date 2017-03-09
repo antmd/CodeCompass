@@ -55,6 +55,11 @@ private:
   bool parseByJson(const std::string& jsonFile_, std::size_t threadNum_);
   void worker();
 
+  // SymbolClusterer should NOT be ran if there isn't a single Link action
+  // amongst the parsed build actions, because it would resolve every reference
+  // to not be linked together, ultimately misleading the user.
+  bool linkCommandFound;
+
   std::vector<clang::tooling::CompileCommand> _compileCommands;
   std::size_t _index;
 
