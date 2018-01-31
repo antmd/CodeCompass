@@ -9,6 +9,8 @@ namespace cc
 namespace parser
 {
 
+    static long unknown_col = 0;
+
 PPMacroCallback::PPMacroCallback(
   ParserContext& ctx_,
   clang::ASTContext& astContext_,
@@ -220,8 +222,12 @@ void PPMacroCallback::addFileLoc(
 
 bool PPMacroCallback::isBuiltInMacro(const clang::MacroInfo* mi_) const
 {
-  std::string fileName = _clangSrcMgr.getPresumedLoc(
-    _clangSrcMgr.getExpansionLoc(mi_->getDefinitionLoc())).getFilename();
+  auto presumedLoc = _clangSrcMgr.getPresumedLoc(
+    _clangSrcMgr.getExpansionLoc(mi_->getDefinitionLoc()));
+
+  if (presumedLoc.isInvalid()) return true;
+
+  std::string fileName = presumedLoc.getFilename();
 
   return fileName == "<built-in>" || fileName == "<command line>";
 }
@@ -231,14 +237,13 @@ std::string PPMacroCallback::getMangledName(const clang::MacroInfo* mi_)
   clang::PresumedLoc presLoc = _clangSrcMgr.getPresumedLoc(
     _clangSrcMgr.getExpansionLoc(mi_->getDefinitionLoc()));
 
-  const char* fileName = presLoc.getFilename();
+  const char* fileName = presLoc.isValid() ? presLoc.getFilename() : "UNKNOWN";
 
   if (!fileName)
     return std::string();
 
   std::string locStr
-     = std::to_string(presLoc.getLine())   + ":" +
-       std::to_string(presLoc.getColumn()) + ":";
+     = presLoc.isValid() ? (std::to_string(presLoc.getLine())   + ":" + std::to_string(presLoc.getColumn()) + ":") : "0:" + std::to_string(unknown_col++);
 
   return locStr
     + (isBuiltInMacro(mi_)
