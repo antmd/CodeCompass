@@ -16,11 +16,11 @@ target_include_directories(CodeCompass_webserver PUBLIC
 target_link_libraries(CodeCompass_webserver
   util
   mongoose
-  boost_thread
-  boost_filesystem
-  boost_system
-  boost_program_options
-  boost_log
+  Boost::thread
+  Boost::filesystem
+  Boost::system
+  Boost::program_options
+  Boost::log
   ${ODB_LIBRARIES}
   pthread
   dl)

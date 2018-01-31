@@ -50,9 +50,9 @@ target_link_libraries(indexerservice
   util
   searchindexerthrift
   ${THRIFT_LIBTHRIFT_LIBRARIES}
-  boost_filesystem
-  boost_system
-  boost_log)
+  Boost::filesystem
+  Boost::system
+  Boost::log)
 
 install(TARGETS indexerservice DESTINATION ${INSTALL_LIB_DIR})
 install_jar(searchindexerthriftjava ${INSTALL_JAVA_LIB_DIR})

@@ -5,7 +5,9 @@ include_directories(
   ${BOOST_INCLUDE_DIRS})
 
 include_directories(SYSTEM
-  ${ODB_INCLUDE_DIRS})
+  ${ODB_INCLUDE_DIRS}
+  /usr/include/graphviz
+  )
 
 add_library(util STATIC
   src/dbutil.cpp

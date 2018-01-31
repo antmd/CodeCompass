@@ -20,10 +20,10 @@ target_compile_options(cpptest PUBLIC -Wno-unknown-pragmas)
 target_link_libraries(cpptest
   util
   cppservice
-  boost_program_options
-  boost_filesystem
-  boost_system
-  boost_log
+  Boost::program_options
+  Boost::filesystem
+  Boost::system
+  Boost::log
   ${GTEST_BOTH_LIBRARIES}
   pthread)
 

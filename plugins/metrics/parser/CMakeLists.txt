@@ -11,8 +11,8 @@ add_library(metricsparser SHARED
 target_link_libraries(metricsparser
   metricsmodel
   util
-  boost_filesystem
-  boost_log)
+  Boost::filesystem
+  Boost::log)
 
 install(TARGETS metricsparser
   LIBRARY DESTINATION ${INSTALL_LIB_DIR}

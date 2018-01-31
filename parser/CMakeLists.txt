@@ -14,15 +14,18 @@ add_executable(CodeCompass_parser
 target_link_libraries(CodeCompass_parser
   util
   model
-  boost_thread
-  boost_filesystem
-  boost_system
-  boost_program_options
-  boost_log
+  Boost::thread
+  Boost::filesystem
+  Boost::system
+  Boost::program_options
+  Boost::log
   ${ODB_LIBRARIES}    
   ${CMAKE_DL_LIBS}
   magic
-  pthread)
+  pthread
+  -ldl 
+  -Wl,-export-dynamic
+  )
 
 install(TARGETS CodeCompass_parser
   RUNTIME DESTINATION ${INSTALL_BIN_DIR}
