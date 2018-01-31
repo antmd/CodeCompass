@@ -113,7 +113,7 @@ private:
     }
 
     virtual bool BeginSourceFileAction(
-      clang::CompilerInstance& compiler_, llvm::StringRef) override
+      clang::CompilerInstance& compiler_) override
     {
       compiler_.createASTContext();
       auto& pp = compiler_.getPreprocessor();
@@ -296,10 +296,18 @@ int CppParser::worker(const clang::tooling::CompileCommand& command_)
 
   int argc = commandLine.size();
 
+  std::string compilationDbLoadError;
   std::unique_ptr<clang::tooling::FixedCompilationDatabase> compilationDb(
     clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
       argc,
-      commandLine.data()));
+      commandLine.data(),
+      compilationDbLoadError));
+
+  if (!compilationDb)
+  {
+    LOG(error) << "Failed to create compilation database from command-line. " << compilationDbLoadError;
+    return 1;
+  }
 
   //--- Save build action ---//
 
@@ -358,7 +366,8 @@ bool CppParser::parseByJson(
 
   std::unique_ptr<clang::tooling::JSONCompilationDatabase> compDb
     = clang::tooling::JSONCompilationDatabase::loadFromFile(
-        jsonFile_, errorMsg);
+        jsonFile_, errorMsg,
+        clang::tooling::JSONCommandLineSyntax::Gnu);
 
   if (!errorMsg.empty())
   {

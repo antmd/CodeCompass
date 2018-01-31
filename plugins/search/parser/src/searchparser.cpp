@@ -85,6 +85,7 @@ std::vector<std::string> SearchParser::getDependentParsers() const
 bool SearchParser::parse()
 {
   if (fs::is_directory(_searchDatabase))
+  {
     if (_ctx.options.count("force"))
     {
       fs::remove_all(_searchDatabase);
@@ -97,6 +98,7 @@ bool SearchParser::parse()
            "Use -f flag for forcing reparse.";
       return true;
     }
+  }
 
   for (const std::string& path :
     _ctx.options["input"].as<std::vector<std::string>>())
