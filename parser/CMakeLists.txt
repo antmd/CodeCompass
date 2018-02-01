@@ -23,7 +23,6 @@ target_link_libraries(CodeCompass_parser
   ${CMAKE_DL_LIBS}
   magic
   pthread
-  -ldl 
   -Wl,-export-dynamic
   )
 

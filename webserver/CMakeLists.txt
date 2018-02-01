@@ -23,7 +23,9 @@ target_link_libraries(CodeCompass_webserver
   Boost::log
   ${ODB_LIBRARIES}
   pthread
-  dl)
+  ${CMAKE_DL_LIBS}
+  -Wl,-export-dynamic
+  )
 
 install(TARGETS CodeCompass_webserver
   RUNTIME DESTINATION ${INSTALL_BIN_DIR}
