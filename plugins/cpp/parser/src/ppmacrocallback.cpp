@@ -3,13 +3,14 @@
 
 #include "filelocutil.h"
 #include "ppmacrocallback.h"
+#include <atomic>
 
 namespace cc
 {
 namespace parser
 {
 
-    static long unknown_col = 0;
+static std::atomic_long unknownCol{0};
 
 PPMacroCallback::PPMacroCallback(
   ParserContext& ctx_,
@@ -243,7 +244,7 @@ std::string PPMacroCallback::getMangledName(const clang::MacroInfo* mi_)
     return std::string();
 
   std::string locStr
-     = presLoc.isValid() ? (std::to_string(presLoc.getLine())   + ":" + std::to_string(presLoc.getColumn()) + ":") : "0:" + std::to_string(unknown_col++);
+     = presLoc.isValid() ? (std::to_string(presLoc.getLine())   + ":" + std::to_string(presLoc.getColumn()) + ":") : "0:" + std::to_string(unknownCol++);
 
   return locStr
     + (isBuiltInMacro(mi_)

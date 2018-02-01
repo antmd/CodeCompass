@@ -1,6 +1,7 @@
 # IDEs and editors
 
 nbproject
+.idea
 *.swp
 
 # Generated files and directories
