@@ -3,6 +3,9 @@
 
 #include <parser/sourcemanager.h>
 #include <util/odbtransaction.h>
+#ifdef DATABASE_SQLITE
+#include <odb/sqlite/exceptions.hxx>
+#endif
 
 #include "symbolhelper.h"
 #include "relationcollector.h"
@@ -30,13 +33,24 @@ RelationCollector::RelationCollector(
 
 RelationCollector::~RelationCollector()
 {
-  _ctx.srcMgr.persistFiles();
+  try {
+      _ctx.srcMgr.persistFiles();
 
-  (util::OdbTransaction(_ctx.db))([this]{
-    util::persistAll(_nodes, _ctx.db);
-    util::persistAll(_edges, _ctx.db);
-    util::persistAll(_edgeAttributes, _ctx.db);
-  });
+      (util::OdbTransaction(_ctx.db))([this]{
+        util::persistAll(_nodes, _ctx.db);
+        util::persistAll(_edges, _ctx.db);
+        util::persistAll(_edgeAttributes, _ctx.db);
+      });
+  }
+#ifdef DATABASE_SQLITE
+  catch (odb::sqlite::database_exception &ex) {
+      std::cerr << "Failed to persist relations: " << ex.what() << std::endl << ex.message() << std::endl;
+  }
+#endif
+  catch (odb::database_exception &ex) {
+      std::cerr << "Failed to persist relations: " << ex.what() << std::endl;
+  }
+
 }
 
 bool RelationCollector::VisitFunctionDecl(clang::FunctionDecl* fd_)

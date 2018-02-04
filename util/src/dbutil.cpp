@@ -359,7 +359,7 @@ void createTables(
   const std::string& sqlDir_)
 {
 #ifdef DATABASE_SQLITE
-  db_->connection()->execute("PRAGMA foreign_keys = ON");
+ // db_->connection()->execute("PRAGMA foreign_keys = ON");
 #endif
   runSqlFiles(db_, sqlDir_,
     [](const std::string& s_){
